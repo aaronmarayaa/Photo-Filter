@@ -12,10 +12,25 @@
   </ion-header>
 
   <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>
-      Start with Ionic
-      <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a>
-    </p>
+
+    <ion-button (click)="toggleCamera(video, dogEars, dogNose)" [disabled]="cameraState() === 'opening'">
+      @if (cameraState() === 'opening') { 
+        Opening Camera… 
+      } @else if (cameraState() === 'open') { 
+        Close Camera 
+      } @else {
+        Open Camera 
+      }
+    </ion-button>
+
+    @if (cameraError()) {
+    <p role="alert">{{ cameraError() }}</p>
+    }
+
+    <div class="camera-preview" [hidden]="cameraState() !== 'open'">
+      <video #video muted playsinline aria-label="Live camera preview"></video>
+      <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
+      <img #dogNose class="dog-nose" src="assets/dog-nose.svg" alt="" hidden />
+    </div>
   </div>
 </ion-content>

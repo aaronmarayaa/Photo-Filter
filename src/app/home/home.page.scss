@@ -25,3 +25,33 @@
 #container a {
   text-decoration: none;
 }
+
+.camera-preview {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  transform: scaleX(-1);
+}
+
+.camera-preview video {
+  display: block;
+  max-width: 100%;
+  max-height: 50vh;
+}
+
+.camera-preview img {
+  position: absolute;
+  pointer-events: none;
+}
+
+.dog-ears {
+  translate: -50% -38%;
+  transform-origin: 50% 38%;
+}
+
+.dog-nose {
+  translate: -50% -30%;
+  transform-origin: 50% 30%;
+}

@@ -27,6 +27,7 @@
     "@angular/platform-browser": "22.2.5",
     "@angular/router": "22.2.5",
     "@ionic/angular": "^9.0.0",
+    "@mediapipe/tasks-vision": "1.2.3",
     "ionicons": "^8.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
