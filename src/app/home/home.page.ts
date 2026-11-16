@@ -13,6 +13,7 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 export class HomePage implements OnDestroy {
   cameraState = signal<'closed' | 'opening' | 'open'>('closed');
   cameraError = signal('');
+  photoSaveState = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   private cameraStream?: MediaStream; // for tracking using camera
   private faceLandmarker?: FaceLandmarker; // for tracking facial features
@@ -72,8 +73,83 @@ export class HomePage implements OnDestroy {
     }
   }
 
+  async capturePhoto(video: HTMLVideoElement, dogEars: HTMLImageElement, dogNose: HTMLImageElement): Promise<void> {
+    if (this.photoSaveState() === 'saving') {
+      return;
+    }
+
+    this.photoSaveState.set('saving');
+
+    try {
+      const canvas = this.renderPhoto(video, [dogEars, dogNose]);
+      const photo = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!photo) {
+        throw new Error('Could not encode the photo.');
+      }
+
+      const downloadUrl = URL.createObjectURL(photo);
+      const download = document.createElement('a');
+      download.href = downloadUrl;
+      download.download = 'dog-filter.png';
+      download.click();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+      const response = await fetch('/photo-filter-backend/api/photos', {
+        method: 'POST',
+        body: photo,
+        signal: AbortSignal.timeout(15000),
+      });
+      if (response.status !== 201) {
+        throw new Error(`Photo upload returned HTTP ${response.status}.`);
+      }
+
+      this.photoSaveState.set('saved');
+    } catch {
+      this.photoSaveState.set('error');
+    }
+  }
+
   ngOnDestroy(): void {
     this.closeCamera();
+  }
+
+  private renderPhoto(video: HTMLVideoElement, overlays: HTMLImageElement[]): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext('2d');
+    if (!context || !canvas.width || !canvas.height || !video.clientWidth || !video.clientHeight) {
+      throw new Error('The camera frame is unavailable.');
+    }
+
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+    context.drawImage(video, 0, 0);
+
+    context.scale(canvas.width / video.clientWidth, canvas.height / video.clientHeight);
+
+    for (const image of overlays) {
+      if (!image.hidden) {
+        const imageStyle = getComputedStyle(image);
+        const origin = imageStyle.transformOrigin.split(' ');
+        const originX = parseFloat(origin[0]);
+        const originY = parseFloat(origin[1]);
+        const imageX = parseFloat(imageStyle.left);
+        const imageY = parseFloat(imageStyle.top);
+        const angle = parseFloat(image.style.rotate);
+        const imageWidth = parseFloat(imageStyle.width);
+        const imageHeight = parseFloat(imageStyle.height);
+
+        context.save();
+        context.translate(imageX, imageY);
+        context.rotate(angle);
+        context.drawImage(image, -originX, -originY, imageWidth, imageHeight);
+        context.restore();
+      }
+    }
+
+    return canvas;
   }
 
   private closeCamera() {

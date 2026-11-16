@@ -23,6 +23,26 @@
       }
     </ion-button>
 
+    @if (cameraState() === 'open') {
+      <ion-button (click)="capturePhoto(video, dogEars, dogNose)" [disabled]="photoSaveState() === 'saving'">
+        Capture Photo
+      </ion-button>
+    }
+
+    <div role="status">
+      @switch (photoSaveState()) {
+        @case ('saving') {
+          Saving photo…
+        }
+        @case ('saved') {
+          Photo saved.
+        }
+        @case ('error') {
+          Couldn’t save the photo to the server. Try again.
+        }
+      }
+    </div>
+
     @if (cameraError()) {
     <p role="alert">{{ cameraError() }}</p>
     }
