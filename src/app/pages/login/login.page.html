@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Log In</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit('login')">
+    <ion-input
+      name="username"
+      label="Username"
+      labelPlacement="stacked"
+      fill="outline"
+      autocomplete="username"
+      autocapitalize="off"
+      [(ngModel)]="username"
+      required
+    ></ion-input>
+
+    <ion-input
+      name="password"
+      label="Password"
+      labelPlacement="stacked"
+      fill="outline"
+      type="password"
+      autocomplete="current-password"
+      [(ngModel)]="password"
+      required
+    ></ion-input>
+
+    @if (warning()) {
+    <p class="warning" role="alert">{{ warning() }}</p>
+    } @if (message()) {
+    <p class="message" role="status">{{ message() }}</p>
+    }
+
+    <ion-button type="submit" expand="block" [disabled]="submitting() !== null || loginForm.invalid">
+      {{ submitting() === 'login' ? 'Logging in…' : 'Log In' }}
+    </ion-button>
+    <ion-button
+      type="button"
+      expand="block"
+      fill="outline"
+      [disabled]="submitting() !== null || loginForm.invalid"
+      (click)="submit('users')"
+    >
+      {{ submitting() === 'users' ? 'Creating account…' : 'Create Account' }}
+    </ion-button>
+  </form>
+</ion-content>

@@ -1,0 +1,21 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 24rem;
+  margin: clamp(1rem, 8vh, 4rem) auto 0;
+}
+
+.warning {
+  color: var(--ion-color-danger);
+}
+
+.warning,
+.message {
+  margin: 0;
+}
+
+ion-button {
+  min-height: 44px;
+  margin: 0;
+}

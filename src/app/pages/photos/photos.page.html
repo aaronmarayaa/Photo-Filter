@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Menu"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Photos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="photo-list">
+    @if (loading()) {
+    <p role="status">Loading photos…</p>
+    } @else if (loadError()) {
+    <p role="alert">Couldn’t load photos.</p>
+    <ion-button (click)="loadPhotos()">Try Again</ion-button>
+    } @else { @if (actionError()) {
+    <p role="alert">{{ actionError() }}</p>
+    } @if (photos().length === 0) {
+    <p>No photos yet.</p>
+    } @else {
+    <ul>
+      @for (photo of photos(); track photo.id) {
+      <li class="photo-row">
+        <div class="photo-details">
+          <strong>{{ photoName(photo.id) }}</strong>
+          <time [attr.datetime]="photo.createdAt">{{ photo.createdAt | date: 'mediumDate' }}</time>
+        </div>
+        <div class="photo-actions">
+          <ion-button fill="outline" [disabled]="working()" (click)="savePhoto(photo)">Save Photo</ion-button>
+          <ion-button fill="clear" color="danger" [disabled]="working()" (click)="removePhoto(photo)"
+            >Delete</ion-button
+          >
+        </div>
+      </li>
+      }
+    </ul>
+    } }
+  </div>
+</ion-content>

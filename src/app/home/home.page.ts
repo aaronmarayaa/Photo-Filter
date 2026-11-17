@@ -1,14 +1,16 @@
 import type { OnDestroy } from '@angular/core';
 import { Component, signal } from '@angular/core';
-import { IonButton, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular';
+import { IonButton, IonButtons, IonContent, IonHeader, IonMenuButton, IonTitle, IonToolbar } from '@ionic/angular';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+
+import { addPhoto } from '../services/photos-api';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonButton, IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [IonButton, IonButtons, IonContent, IonHeader, IonMenuButton, IonTitle, IonToolbar],
 })
 export class HomePage implements OnDestroy {
   cameraState = signal<'closed' | 'opening' | 'open'>('closed');
@@ -18,6 +20,7 @@ export class HomePage implements OnDestroy {
   private cameraStream?: MediaStream; // for tracking using camera
   private faceLandmarker?: FaceLandmarker; // for tracking facial features
   private animationFrame = 0;
+  private cameraRequest = 0;
 
   async toggleCamera(video: HTMLVideoElement, dogEars: HTMLImageElement, dogNose: HTMLImageElement): Promise<void> {
     if (this.cameraState() === 'open') { // close the camera
@@ -26,6 +29,7 @@ export class HomePage implements OnDestroy {
       return;
     }
 
+    const request = ++this.cameraRequest;
     this.cameraState.set('opening'); // set the camera state to opening
     this.cameraError.set('');
     dogEars.hidden = true;
@@ -36,7 +40,7 @@ export class HomePage implements OnDestroy {
         video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
       }); // ask for camera access
 
-      if (this.cameraState() === 'closed') {
+      if (request !== this.cameraRequest) {
         for (const track of stream.getTracks()) {
           track.stop();
         }
@@ -58,7 +62,7 @@ export class HomePage implements OnDestroy {
         numFaces: 1,
       }); // create a face landmarker to track the facial features
 
-      if (this.cameraState() === 'closed') {
+      if (request !== this.cameraRequest) {
         faceLandmarker.close();
         return;
       }
@@ -67,6 +71,9 @@ export class HomePage implements OnDestroy {
       this.cameraState.set('open');
       this.trackFace(video, dogEars, dogNose, faceLandmarker); //  track the face
     } catch {
+      if (request !== this.cameraRequest) {
+        return;
+      }
       this.closeCamera();
       video.srcObject = null;
       this.cameraError.set('Could not start the camera or load the dog filter.');
@@ -82,31 +89,15 @@ export class HomePage implements OnDestroy {
 
     try {
       const canvas = this.renderPhoto(video, [dogEars, dogNose]);
-      const photo = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!photo) {
-        throw new Error('Could not encode the photo.');
-      }
-
-      const downloadUrl = URL.createObjectURL(photo);
-      const download = document.createElement('a');
-      download.href = downloadUrl;
-      download.download = 'dog-filter.png';
-      download.click();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-
-      const response = await fetch('/photo-filter-backend/api/photos', {
-        method: 'POST',
-        body: photo,
-        signal: AbortSignal.timeout(15000),
-      });
-      if (response.status !== 201) {
-        throw new Error(`Photo upload returned HTTP ${response.status}.`);
-      }
-
+      await addPhoto(canvas);
       this.photoSaveState.set('saved');
     } catch {
       this.photoSaveState.set('error');
     }
+  }
+
+  ionViewWillLeave(): void {
+    this.closeCamera();
   }
 
   ngOnDestroy(): void {
@@ -153,6 +144,7 @@ export class HomePage implements OnDestroy {
   }
 
   private closeCamera() {
+    this.cameraRequest++;
     cancelAnimationFrame(this.animationFrame);
 
     for (const track of this.cameraStream?.getTracks() ?? []) {
