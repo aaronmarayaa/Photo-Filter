@@ -1,22 +1,58 @@
 import { DatePipe } from '@angular/common';
 import { Component, signal } from '@angular/core';
-import { IonButton, IonButtons, IonContent, IonHeader, IonMenuButton, IonTitle, IonToolbar } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonMenuButton,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { closeOutline, downloadOutline, trashOutline } from 'ionicons/icons';
 
 import type { Photo } from '../../services/photos-api';
-import { deletePhoto, getPhotoImage, listPhotos } from '../../services/photos-api';
+import { deletePhoto, getPhotoImage, listPhotos, photoImageUrl } from '../../services/photos-api';
 
 @Component({
   selector: 'app-photos',
   templateUrl: 'photos.page.html',
   styleUrl: 'photos.page.scss',
-  imports: [DatePipe, IonButton, IonButtons, IonContent, IonHeader, IonMenuButton, IonTitle, IonToolbar],
+  imports: [
+    DatePipe,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonFooter,
+    IonHeader,
+    IonIcon,
+    IonMenuButton,
+    IonModal,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class PhotosPage {
   photos = signal<Photo[]>([]);
+  selectedPhoto = signal<Photo | null>(null);
+  photoImageUrl = photoImageUrl;
   loading = signal(false);
   loadError = signal(false);
   actionError = signal('');
   working = signal(false);
+
+  constructor() {
+    addIcons({ closeOutline, downloadOutline, trashOutline });
+  }
+
+  openPhoto(photo: Photo): void {
+    this.actionError.set('');
+    this.selectedPhoto.set(photo);
+  }
 
   ionViewWillEnter(): void {
     void this.loadPhotos();
@@ -73,8 +109,9 @@ export class PhotosPage {
       await deletePhoto(photo.id);
       const remainingPhotos = this.photos().filter((item) => item.id !== photo.id);
       this.photos.set(remainingPhotos);
+      this.selectedPhoto.set(null);
     } catch {
-      this.actionError.set('Couldn’t delete the photo. Try again.');
+      this.actionError.set('Couldn\'t delete the photo. Try again.');
     } finally {
       this.working.set(false);
     }

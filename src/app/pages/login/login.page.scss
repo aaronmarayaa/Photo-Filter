@@ -1,9 +1,14 @@
+#login-content {
+  --background: #f8f2e8;
+  --padding: 2rem 1rem;
+}
+
 .login-form {
+  color: black;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   max-width: 24rem;
-  margin: clamp(1rem, 8vh, 4rem) auto 0;
 }
 
 .warning {

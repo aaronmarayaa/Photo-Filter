@@ -8,33 +8,64 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="photo-list">
-    @if (loading()) {
-    <p role="status">Loading photos…</p>
-    } @else if (loadError()) {
-    <p role="alert">Couldn’t load photos.</p>
-    <ion-button (click)="loadPhotos()">Try Again</ion-button>
-    } @else { @if (actionError()) {
-    <p role="alert">{{ actionError() }}</p>
-    } @if (photos().length === 0) {
-    <p>No photos yet.</p>
-    } @else {
-    <ul>
-      @for (photo of photos(); track photo.id) {
-      <li class="photo-row">
-        <div class="photo-details">
-          <strong>{{ photoName(photo.id) }}</strong>
-          <time [attr.datetime]="photo.createdAt">{{ photo.createdAt | date: 'mediumDate' }}</time>
-        </div>
-        <div class="photo-actions">
-          <ion-button fill="outline" [disabled]="working()" (click)="savePhoto(photo)">Save Photo</ion-button>
-          <ion-button fill="clear" color="danger" [disabled]="working()" (click)="removePhoto(photo)"
-            >Delete</ion-button
-          >
-        </div>
-      </li>
-      }
-    </ul>
-    } }
+  @if (loading()) {
+  <p role="status">Loading photos.</p>
+  } @else if (loadError()) {
+  <p role="alert">Couldn't load photos.</p>
+  <ion-button (click)="loadPhotos()">Try Again</ion-button>
+  } @else if (photos().length === 0) {
+  <p>No photos yet.</p>
+  } @else {
+  <div class="gallery">
+    @for (photo of photos(); track photo.id) {
+    <button type="button" [attr.aria-label]="'Open ' + photoName(photo.id)" (click)="openPhoto(photo)">
+      <img [src]="photoImageUrl(photo.id)" alt="" loading="lazy" />
+    </button>
+    }
   </div>
+  }
 </ion-content>
+
+<ion-modal
+  #preview
+  [canDismiss]="!working()"
+  [isOpen]="selectedPhoto() !== null"
+  (didDismiss)="selectedPhoto.set(null)"
+  aria-labelledby="photo-name"
+>
+  <ng-template>
+    @if (selectedPhoto(); as photo) {
+    <ion-header>
+      <ion-toolbar>
+        <ion-title id="photo-name">{{ photoName(photo.id) }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button aria-label="Close preview" (click)="preview.dismiss()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="preview" [scrollY]="false">
+      <img [src]="photoImageUrl(photo.id)" [alt]="photoName(photo.id)" />
+    </ion-content>
+
+    <ion-footer>
+      @if (actionError()) {
+      <p role="alert">{{ actionError() }}</p>
+      }
+      <ion-toolbar>
+        <time [attr.datetime]="photo.createdAt">{{ photo.createdAt | date: 'mediumDate' }}</time>
+        <ion-buttons slot="end">
+          <ion-button aria-label="Save photo" [disabled]="working()" (click)="savePhoto(photo)">
+            <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+          </ion-button>
+          <ion-button aria-label="Delete photo" color="danger" [disabled]="working()" (click)="removePhoto(photo)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+    }
+  </ng-template>
+</ion-modal>

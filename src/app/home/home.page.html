@@ -7,24 +7,30 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content>
   <div id="container">
-
-    <ion-button (click)="toggleCamera(video, dogEars, dogNose)" [disabled]="cameraState() === 'opening'">
-      @if (cameraState() === 'opening') { 
-        Opening Camera… 
-      } @else if (cameraState() === 'open') { 
-        Close Camera 
-      } @else {
-        Open Camera 
-      }
-    </ion-button>
-
-    @if (cameraState() === 'open') {
-      <ion-button (click)="capturePhoto(video, dogEars, dogNose)" [disabled]="photoSaveState() === 'saving'">
-        Capture Photo
+    <div class="camera-preview" [class.camera-off]="cameraState() !== 'open'">
+      <video #video muted playsinline aria-label="Live camera preview"></video>
+      <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
+      <img #dogNose class="dog-nose" src="assets/dog-nose.svg" alt="" hidden />
+    </div>
+    <div class="buttons">
+      <a class="photos-link" routerLink="/photos" aria-label="Open photo list">
+        <ion-icon name="images-outline" aria-hidden="true" [class.photo-saved]="photoSaveState() === 'saved'"></ion-icon>
+      </a>
+      <ion-button
+        class="capture-button"
+        shape="round"
+        aria-label="Capture photo"
+        [disabled]="cameraState() !== 'open' || photoSaveState() === 'saving'"
+        (click)="capturePhoto()"
+      >
+        <ion-icon slot="icon-only" name="camera-outline" aria-hidden="true"></ion-icon>
       </ion-button>
-    }
+      <ion-button class="reverse-button" fill="clear" disabled aria-label="Reverse camera">
+        <ion-icon slot="icon-only" name="camera-reverse-outline" aria-hidden="true"></ion-icon>
+      </ion-button>
+    </div>
 
     <div role="status">
       @switch (photoSaveState()) {
@@ -41,13 +47,8 @@
     </div>
 
     @if (cameraError()) {
-    <p role="alert">{{ cameraError() }}</p>
+      <p role="alert">{{ cameraError() }}</p>
+      <ion-button fill="clear" (click)="openCamera()">Retry camera</ion-button>
     }
-
-    <div class="camera-preview" [hidden]="cameraState() !== 'open'">
-      <video #video muted playsinline aria-label="Live camera preview"></video>
-      <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
-      <img #dogNose class="dog-nose" src="assets/dog-nose.svg" alt="" hidden />
-    </div>
   </div>
 </ion-content>

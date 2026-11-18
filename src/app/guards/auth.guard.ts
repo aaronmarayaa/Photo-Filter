@@ -2,12 +2,12 @@ import { inject } from '@angular/core';
 import type { CanActivateFn } from '@angular/router';
 import { Router } from '@angular/router';
 
-import { signedIn } from '../services/auth-api';
+import { restoreLogin, signedIn } from '../services/auth-api';
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = async () => {
   const router = inject(Router);
 
-  if (signedIn()) {
+  if (signedIn() || (await restoreLogin())) {
     return true;
   }
 

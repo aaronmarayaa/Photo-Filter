@@ -4,43 +4,43 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit()">
-    @if (accountCreated() && !warning()) {
-    <p class="message" role="status">Account created. Log in to continue.</p>
-    }
+<ion-content id="login-content" class="ion-padding" [fullscreen]="true">
+    <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit()">
+      @if (accountCreated() && !warning()) {
+      <p class="message" role="status">Account created. Log in to continue.</p>
+      }
 
-    <ion-input
-      name="username"
-      label="Username"
-      labelPlacement="stacked"
-      fill="outline"
-      autocomplete="username"
-      autocapitalize="off"
-      [(ngModel)]="username"
-      required
-    ></ion-input>
+      <ion-input
+        name="username"
+        label="Username"
+        labelPlacement="stacked"
+        fill="outline"
+        autocomplete="username"
+        autocapitalize="off"
+        [(ngModel)]="username"
+        required
+      ></ion-input>
 
-    <ion-input
-      name="password"
-      label="Password"
-      labelPlacement="stacked"
-      fill="outline"
-      type="password"
-      autocomplete="current-password"
-      [(ngModel)]="password"
-      required
-    ></ion-input>
+      <ion-input
+        name="password"
+        label="Password"
+        labelPlacement="stacked"
+        fill="outline"
+        type="password"
+        autocomplete="current-password"
+        [(ngModel)]="password"
+        required
+      ></ion-input>
 
-    @if (warning()) {
-    <p class="warning" role="alert">{{ warning() }}</p>
-    }
+      @if (warning()) {
+      <p class="warning" role="alert">{{ warning() }}</p>
+      }
 
-    <ion-button type="submit" expand="block" [disabled]="submitting() || loginForm.invalid">
-      {{ submitting() ? 'Logging in…' : 'Log In' }}
-    </ion-button>
-    <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
-      Create Account
-    </ion-button>
-  </form>
+      <ion-button type="submit" expand="block" [disabled]="submitting() || loginForm.invalid">
+        {{ submitting() ? 'Logging in…' : 'Log In' }}
+      </ion-button>
+      <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
+        Create Account
+      </ion-button>
+    </form>
 </ion-content>

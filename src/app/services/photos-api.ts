@@ -40,8 +40,12 @@ export async function listPhotos(): Promise<Photo[]> {
   return data.photos;
 }
 
+export function photoImageUrl(id: number): string {
+  return `${photosUrl}/${id}/image`;
+}
+
 export async function getPhotoImage(id: number): Promise<Blob> {
-  const response = await fetch(`${photosUrl}/${id}/image`, { signal: AbortSignal.timeout(15000) });
+  const response = await fetch(photoImageUrl(id), { signal: AbortSignal.timeout(15000) });
   if (!response.ok) {
     throw new Error('Could not download the photo.');
   }

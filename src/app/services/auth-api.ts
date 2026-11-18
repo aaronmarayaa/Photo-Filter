@@ -1,11 +1,43 @@
 import { signal } from '@angular/core';
 
+const loginKey = 'photo-filter-signed-in';
+
 interface AuthResponse {
   message?: string;
   user?: { id: number; username: string };
 }
 
 export const signedIn = signal(false);
+
+export function markSignedIn(): void {
+  sessionStorage.setItem(loginKey, 'true');
+  signedIn.set(true);
+}
+
+export async function restoreLogin(): Promise<boolean> {
+  if (sessionStorage.getItem(loginKey) !== 'true') {
+    return false;
+  }
+
+  try {
+    const response = await fetch('/photo-filter-backend/api/session', {
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (response.status === 204) {
+      signedIn.set(true);
+      return true;
+    }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem(loginKey);
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+}
 
 export async function submitCredentials(
   endpoint: 'login' | 'users',
@@ -37,5 +69,6 @@ export async function logout(): Promise<void> {
     throw new Error('Could not log out.');
   }
 
+  sessionStorage.removeItem(loginKey);
   signedIn.set(false);
 }

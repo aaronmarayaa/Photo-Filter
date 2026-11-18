@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
 import { map } from 'rxjs';
 
-import { signedIn, submitCredentials } from '../../services/auth-api';
+import { markSignedIn, submitCredentials } from '../../services/auth-api';
 
 @Component({
   selector: 'app-login',
@@ -44,7 +44,7 @@ export class LoginPage {
         return;
       }
 
-      signedIn.set(true);
+      markSignedIn();
       this.password = '';
       await this.router.navigateByUrl('/home', { replaceUrl: true });
     } catch {
