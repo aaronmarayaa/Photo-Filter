@@ -1,7 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { map } from 'rxjs';
 
 import { signedIn, submitCredentials } from '../../services/auth-api';
 
@@ -9,35 +11,36 @@ import { signedIn, submitCredentials } from '../../services/auth-api';
   selector: 'app-login',
   templateUrl: 'login.page.html',
   styleUrl: 'login.page.scss',
-  imports: [FormsModule, IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar],
+  imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar],
 })
 export class LoginPage {
   username = '';
   password = '';
   warning = signal('');
-  message = signal('');
-  submitting = signal<'login' | 'users' | null>(null);
+  submitting = signal(false);
+  accountCreated = toSignal(
+    inject(ActivatedRoute).queryParamMap.pipe(map((params) => params.get('registered') === '1')),
+  );
 
   private router = inject(Router);
 
-  async submit(action: 'login' | 'users'): Promise<void> {
+  ionViewWillEnter(): void {
+    this.warning.set('');
+    this.password = '';
+  }
+
+  async submit(): Promise<void> {
     if (this.submitting()) {
       return;
     }
 
     this.warning.set('');
-    this.message.set('');
-    this.submitting.set(action);
+    this.submitting.set(true);
 
     try {
-      const warning = await submitCredentials(action, this.username, this.password);
+      const warning = await submitCredentials('login', this.username, this.password);
       if (warning) {
         this.warning.set(warning);
-        return;
-      }
-
-      if (action === 'users') {
-        this.message.set('Account created. Log in to continue.');
         return;
       }
 
@@ -47,7 +50,7 @@ export class LoginPage {
     } catch {
       this.warning.set('Couldn’t reach the login server. Try again.');
     } finally {
-      this.submitting.set(null);
+      this.submitting.set(false);
     }
   }
 }

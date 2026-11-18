@@ -5,7 +5,11 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit('login')">
+  <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit()">
+    @if (accountCreated() && !warning()) {
+    <p class="message" role="status">Account created. Log in to continue.</p>
+    }
+
     <ion-input
       name="username"
       label="Username"
@@ -30,21 +34,13 @@
 
     @if (warning()) {
     <p class="warning" role="alert">{{ warning() }}</p>
-    } @if (message()) {
-    <p class="message" role="status">{{ message() }}</p>
     }
 
-    <ion-button type="submit" expand="block" [disabled]="submitting() !== null || loginForm.invalid">
-      {{ submitting() === 'login' ? 'Logging in…' : 'Log In' }}
+    <ion-button type="submit" expand="block" [disabled]="submitting() || loginForm.invalid">
+      {{ submitting() ? 'Logging in…' : 'Log In' }}
     </ion-button>
-    <ion-button
-      type="button"
-      expand="block"
-      fill="outline"
-      [disabled]="submitting() !== null || loginForm.invalid"
-      (click)="submit('users')"
-    >
-      {{ submitting() === 'users' ? 'Creating account…' : 'Create Account' }}
+    <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
+      Create Account
     </ion-button>
   </form>
 </ion-content>

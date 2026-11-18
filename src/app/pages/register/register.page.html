@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Create Account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form class="register-form" #registerForm="ngForm" (ngSubmit)="submit()">
+    <ion-input
+      name="username"
+      label="Username"
+      labelPlacement="stacked"
+      fill="outline"
+      autocomplete="username"
+      autocapitalize="off"
+      [(ngModel)]="username"
+      [readonly]="submitting()"
+      required
+    ></ion-input>
+
+    <ion-input
+      name="password"
+      label="Password"
+      labelPlacement="stacked"
+      fill="outline"
+      type="password"
+      autocomplete="new-password"
+      helperText="Use 8 to 48 characters."
+      [(ngModel)]="password"
+      [readonly]="submitting()"
+      required
+    ></ion-input>
+
+    @if (warning()) {
+    <p class="warning" role="alert">{{ warning() }}</p>
+    }
+
+    <ion-button type="submit" expand="block" [disabled]="submitting() || registerForm.invalid">
+      {{ submitting() ? 'Creating account…' : 'Create Account' }}
+    </ion-button>
+    <ion-button routerLink="/login" routerDirection="back" expand="block" fill="outline" [disabled]="submitting()">
+      Back to Log In
+    </ion-button>
+  </form>
+</ion-content>
