@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 
+import { apiUrl } from './api-url';
+
 const loginKey = 'photo-filter-signed-in';
 
 interface AuthResponse {
@@ -20,7 +22,7 @@ export async function restoreLogin(): Promise<boolean> {
   }
 
   try {
-    const response = await fetch('/photo-filter-backend/api/session', {
+    const response = await fetch(apiUrl('session'), {
       signal: AbortSignal.timeout(10000),
     });
 
@@ -44,7 +46,7 @@ export async function submitCredentials(
   username: string,
   password: string,
 ): Promise<string> {
-  const response = await fetch(`/photo-filter-backend/api/${endpoint}`, {
+  const response = await fetch(apiUrl(endpoint), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
@@ -60,7 +62,7 @@ export async function submitCredentials(
 }
 
 export async function logout(): Promise<void> {
-  const response = await fetch('/photo-filter-backend/api/logout', {
+  const response = await fetch(apiUrl('logout'), {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
   });

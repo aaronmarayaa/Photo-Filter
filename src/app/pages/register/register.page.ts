@@ -74,7 +74,7 @@ export class RegisterPage {
       this.confirmPassword = '';
       await this.router.navigate(['/login'], { queryParams: { registered: '1' }, replaceUrl: true });
     } catch {
-      this.warning.set('Couldn\'t reach the registration server. Try again.');
+      this.warning.set("Couldn't reach the registration server. Try again.");
     } finally {
       this.submitting.set(false);
     }

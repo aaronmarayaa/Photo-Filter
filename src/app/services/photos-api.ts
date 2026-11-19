@@ -1,4 +1,6 @@
-const photosUrl = '/photo-filter-backend/api/photos';
+import { apiUrl } from './api-url';
+
+const photosUrl = apiUrl('photos');
 
 export interface Photo {
   id: number;

@@ -19,7 +19,7 @@
   <div class="gallery">
     @for (photo of photos(); track photo.id) {
     <button type="button" [attr.aria-label]="'Open ' + photoName(photo.id)" (click)="openPhoto(photo)">
-      <img [src]="photoImageUrl(photo.id)" alt="" loading="lazy" />
+      <img [appPhotoSrc]="photoImageUrl(photo.id)" alt="" loading="lazy" />
     </button>
     }
   </div>
@@ -47,7 +47,7 @@
     </ion-header>
 
     <ion-content class="preview" [scrollY]="false">
-      <img [src]="photoImageUrl(photo.id)" [alt]="photoName(photo.id)" />
+      <img [appPhotoSrc]="photoImageUrl(photo.id)" [alt]="photoName(photo.id)" />
     </ion-content>
 
     <ion-footer>

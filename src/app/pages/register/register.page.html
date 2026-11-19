@@ -38,7 +38,10 @@
         [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
         (click)="togglePassword(passwordInput)"
       >
-        <ion-icon slot="icon-only" [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+        <ion-icon
+          slot="icon-only"
+          [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"
+        ></ion-icon>
       </ion-button>
     </ion-input>
 
@@ -61,7 +64,10 @@
         [attr.aria-label]="confirmInput.type === 'password' ? 'Show confirm password' : 'Hide confirm password'"
         (click)="togglePassword(confirmInput)"
       >
-        <ion-icon slot="icon-only" [name]="confirmInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+        <ion-icon
+          slot="icon-only"
+          [name]="confirmInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"
+        ></ion-icon>
       </ion-button>
     </ion-input>
 

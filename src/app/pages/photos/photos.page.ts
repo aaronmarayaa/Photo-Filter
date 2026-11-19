@@ -15,8 +15,10 @@ import {
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, closeOutline, downloadOutline, trashOutline } from 'ionicons/icons';
 
+import { PhotoSrcDirective } from '../../services/photo-src.directive';
 import type { Photo } from '../../services/photos-api';
 import { deletePhoto, getPhotoImage, listPhotos, photoImageUrl } from '../../services/photos-api';
+import { savePhoto } from '../../services/save-photo';
 
 @Component({
   selector: 'app-photos',
@@ -34,6 +36,7 @@ import { deletePhoto, getPhotoImage, listPhotos, photoImageUrl } from '../../ser
     IonModal,
     IonTitle,
     IonToolbar,
+    PhotoSrcDirective,
   ],
 })
 export class PhotosPage {
@@ -91,12 +94,7 @@ export class PhotosPage {
     this.actionError.set('');
     try {
       const image = await getPhotoImage(photo.id);
-      const url = URL.createObjectURL(image);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = this.photoName(photo.id);
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await savePhoto(image, this.photoName(photo.id));
     } catch {
       this.actionError.set('Couldn’t download the photo. Try again.');
     } finally {
@@ -117,7 +115,7 @@ export class PhotosPage {
       this.photos.set(remainingPhotos);
       this.selectedPhoto.set(null);
     } catch {
-      this.actionError.set('Couldn\'t delete the photo. Try again.');
+      this.actionError.set("Couldn't delete the photo. Try again.");
     } finally {
       this.working.set(false);
     }

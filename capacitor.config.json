@@ -1,0 +1,10 @@
+{
+  "appId": "com.aaronmarayaa.photofilter",
+  "appName": "Photo Filter",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

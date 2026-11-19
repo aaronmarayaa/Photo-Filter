@@ -1,0 +1,105 @@
+name: Android APK and QR code
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: HTTPS backend URL ending in /photo-filter-backend/api (overrides the repository variable)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-download-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    name: Build and publish Android download
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      PHOTO_FILTER_API_URL: ${{ inputs.api_url || vars.PHOTO_FILTER_API_URL }}
+
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Validate the phone backend URL
+        run: node scripts/configure-android.mjs
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check the app
+        run: |
+          npm run lint
+          npm run test:unit
+
+      - name: Build and copy the web app into Android
+        run: npm run build:android
+
+      - name: Build the installable test APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Generate the download QR code
+        id: download
+        run: |
+          mkdir -p dist/android
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/android/photo-filter.apk
+          npm run release:android
+
+      - name: Keep the APK and QR code as workflow artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: photo-filter-android-${{ github.run_number }}-${{ github.run_attempt }}
+          path: dist/android/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish the APK and QR code
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.download.outputs.tag }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            dist/android/photo-filter.apk \
+            dist/android/install-qr.png \
+            dist/android/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title "Photo Filter Android build $GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT" \
+            --notes-file dist/android/release-notes.md \
+            --latest
+
+      - name: Show the QR code in the workflow summary
+        run: cat dist/android/release-notes.md >> "$GITHUB_STEP_SUMMARY"

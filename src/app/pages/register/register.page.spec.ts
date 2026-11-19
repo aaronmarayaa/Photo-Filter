@@ -37,6 +37,7 @@ describe('RegisterPage', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     page.username = ' demouser ';
     page.password = 'demo-password';
+    page.confirmPassword = 'demo-password';
 
     await Promise.all([page.submit(), page.submit()]);
 

@@ -5,53 +5,56 @@
 </ion-header>
 
 <ion-content id="login-content" class="ion-padding" [fullscreen]="true">
-    <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit()">
-      @if (accountCreated() && !warning()) {
-      <p class="message" role="status">Account created. Log in to continue.</p>
-      }
+  <form class="login-form" #loginForm="ngForm" (ngSubmit)="submit()">
+    @if (accountCreated() && !warning()) {
+    <p class="message" role="status">Account created. Log in to continue.</p>
+    }
 
-      <ion-input
-        name="username"
-        label="Username"
-        labelPlacement="stacked"
-        fill="outline"
-        autocomplete="username"
-        autocapitalize="off"
-        [(ngModel)]="username"
-        required
-      ></ion-input>
+    <ion-input
+      name="username"
+      label="Username"
+      labelPlacement="stacked"
+      fill="outline"
+      autocomplete="username"
+      autocapitalize="off"
+      [(ngModel)]="username"
+      required
+    ></ion-input>
 
-      <ion-input
-        #passwordInput
-        name="password"
-        label="Password"
-        labelPlacement="stacked"
-        fill="outline"
-        type="password"
-        autocomplete="current-password"
-        [(ngModel)]="password"
-        required
+    <ion-input
+      #passwordInput
+      name="password"
+      label="Password"
+      labelPlacement="stacked"
+      fill="outline"
+      type="password"
+      autocomplete="current-password"
+      [(ngModel)]="password"
+      required
+    >
+      <ion-button
+        slot="end"
+        type="button"
+        fill="clear"
+        [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
+        (click)="togglePassword(passwordInput)"
       >
-        <ion-button
-          slot="end"
-          type="button"
-          fill="clear"
-          [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
-          (click)="togglePassword(passwordInput)"
-        >
-          <ion-icon slot="icon-only" [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
-        </ion-button>
-      </ion-input>
-
-      @if (warning()) {
-      <p class="warning" role="alert">{{ warning() }}</p>
-      }
-
-      <ion-button type="submit" expand="block" [disabled]="submitting() || loginForm.invalid">
-        {{ submitting() ? 'Logging in…' : 'Log In' }}
+        <ion-icon
+          slot="icon-only"
+          [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"
+        ></ion-icon>
       </ion-button>
-      <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
-        Create Account
-      </ion-button>
-    </form>
+    </ion-input>
+
+    @if (warning()) {
+    <p class="warning" role="alert">{{ warning() }}</p>
+    }
+
+    <ion-button type="submit" expand="block" [disabled]="submitting() || loginForm.invalid">
+      {{ submitting() ? 'Logging in…' : 'Log In' }}
+    </ion-button>
+    <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
+      Create Account
+    </ion-button>
+  </form>
 </ion-content>
