@@ -36,7 +36,7 @@ Scan this QR code with your Android phone's camera to download the APK:
 
 Open the downloaded APK and allow installation from your browser when Android asks. Allow camera access when opening Photo Filter.
 
-This is a debug-signed test build for Android 7 or newer. The PHP backend must be online. Saving a photo opens Android's share sheet so you can save or send it.
+This is a debug-signed test build for Android 7 or newer. The PHP backend must be online. Saving a photo opens Android's file picker. Choose a folder, such as Downloads, and tap Save to keep the PNG on your phone.
 
 Private repository: sign in to a GitHub account with repository access in your phone's browser before scanning.
 

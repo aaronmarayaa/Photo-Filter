@@ -90,13 +90,16 @@ export class PhotosPage {
   }
 
   async savePhoto(photo: Photo): Promise<void> {
+    if (this.working()) {
+      return;
+    }
     this.working.set(true);
     this.actionError.set('');
     try {
       const image = await getPhotoImage(photo.id);
       await savePhoto(image, this.photoName(photo.id));
-    } catch {
-      this.actionError.set('Couldn’t download the photo. Try again.');
+    } catch (error) {
+      this.actionError.set(error instanceof Error ? error.message : 'Could not save the photo. Try again.');
     } finally {
       this.working.set(false);
     }

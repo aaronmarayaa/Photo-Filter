@@ -70,7 +70,7 @@
 
     <div role="status">
       @switch (photoSaveState()) { @case ('saving') { Adding photo… } @case ('saved') { Photo added to the list. } @case
-      ('error') { Couldn't add the photo to the list. Try again. } }
+      ('error') { {{ photoSaveError() }} } }
     </div>
 
     @if (cameraError()) {

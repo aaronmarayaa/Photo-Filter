@@ -7,6 +7,18 @@ export interface Photo {
 
 let pendingUpload = Promise.resolve();
 
+async function photoRequestError(response: Response, fallback: string): Promise<Error> {
+  try {
+    const result: { message?: string } = await response.json();
+    if (typeof result.message === 'string' && result.message) {
+      return new Error(result.message);
+    }
+  } catch {
+    // A tunnel error can return HTML instead of the API's JSON response.
+  }
+  return new Error(`${fallback} (HTTP ${response.status}).`);
+}
+
 export function addPhoto(canvas: HTMLCanvasElement): Promise<void> {
   const upload = pendingUpload.then(async () => {
     const photo = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
@@ -14,13 +26,15 @@ export function addPhoto(canvas: HTMLCanvasElement): Promise<void> {
       throw new Error('Could not encode the photo.');
     }
 
+    const body = new FormData();
+    body.append('photo', photo, 'photo.png');
     const response = await fetch(apiUrl('photos'), {
       method: 'POST',
-      body: photo,
+      body,
       signal: AbortSignal.timeout(15000),
     });
     if (response.status !== 201) {
-      throw new Error('Could not add the photo to the list.');
+      throw await photoRequestError(response, 'Could not upload the photo');
     }
   });
 
@@ -47,7 +61,7 @@ export function photoImageUrl(id: number): string {
 export async function getPhotoImage(id: number): Promise<Blob> {
   const response = await fetch(photoImageUrl(id), { signal: AbortSignal.timeout(15000) });
   if (!response.ok) {
-    throw new Error('Could not download the photo.');
+    throw await photoRequestError(response, 'Could not download the photo');
   }
 
   return response.blob();

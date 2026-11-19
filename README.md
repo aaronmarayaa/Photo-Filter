@@ -14,7 +14,7 @@ After the first successful workflow run, the latest download is available here:
 2. Open the downloaded `photo-filter.apk`. Allow your browser to install apps when Android asks.
 3. Open **Photo Filter** and allow camera access.
 
-Android 7 or newer is required. For a private repository, sign in to GitHub in your phone's browser with an account that can access the repository before downloading. In the Android app, **Save photo** opens the share sheet so you can save or send the image.
+Android 7 or newer is required. For a private repository, sign in to GitHub in your phone's browser with an account that can access the repository before downloading. In the Android app, **Save photo** opens the system file picker. Choose a folder, such as Downloads, and tap **Save** to keep the PNG on your phone.
 
 ## Set up the GitHub workflow
 

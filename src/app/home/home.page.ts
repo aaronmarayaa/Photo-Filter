@@ -34,6 +34,7 @@ export class HomePage implements OnDestroy {
   cameraFacing = signal<CameraFacing>('user');
   cameraError = signal('');
   photoSaveState = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  photoSaveError = signal('');
 
   private videoRef = viewChild.required<ElementRef<HTMLVideoElement>>('video');
   private earsRef = viewChild.required<ElementRef<HTMLImageElement>>('dogEars');
@@ -162,11 +163,15 @@ export class HomePage implements OnDestroy {
     }
 
     this.photoSaveState.set('saving');
+    this.photoSaveError.set('');
     try {
       const photo = this.faceFilter.capture(this.selectedFilter(), this.cameraFacing() === 'user');
       await addPhoto(photo);
       this.photoSaveState.set('saved');
-    } catch {
+    } catch (error) {
+      this.photoSaveError.set(
+        error instanceof Error ? error.message : 'Could not add the photo to the list. Try again.',
+      );
       this.photoSaveState.set('error');
     }
   }
