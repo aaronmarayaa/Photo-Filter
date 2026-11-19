@@ -22,6 +22,7 @@
       ></ion-input>
 
       <ion-input
+        #passwordInput
         name="password"
         label="Password"
         labelPlacement="stacked"
@@ -30,7 +31,17 @@
         autocomplete="current-password"
         [(ngModel)]="password"
         required
-      ></ion-input>
+      >
+        <ion-button
+          slot="end"
+          type="button"
+          fill="clear"
+          [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
+          (click)="togglePassword(passwordInput)"
+        >
+          <ion-icon slot="icon-only" [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+        </ion-button>
+      </ion-input>
 
       @if (warning()) {
       <p class="warning" role="alert">{{ warning() }}</p>

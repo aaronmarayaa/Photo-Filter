@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" id="container">
   @if (loading()) {
   <p role="status">Loading photos.</p>
   } @else if (loadError()) {
@@ -55,15 +55,32 @@
       <p role="alert">{{ actionError() }}</p>
       }
       <ion-toolbar>
+        @if (confirmingDelete()) {
+        <p role="status">Delete this photo?</p>
+        <ion-buttons slot="end">
+          <ion-button aria-label="Confirm deletion" color="danger" [disabled]="working()" (click)="removePhoto(photo)">
+            <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+          </ion-button>
+          <ion-button aria-label="Cancel deletion" [disabled]="working()" (click)="setDeleteConfirmation(false)">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        } @else {
         <time [attr.datetime]="photo.createdAt">{{ photo.createdAt | date: 'mediumDate' }}</time>
         <ion-buttons slot="end">
           <ion-button aria-label="Save photo" [disabled]="working()" (click)="savePhoto(photo)">
             <ion-icon slot="icon-only" name="download-outline"></ion-icon>
           </ion-button>
-          <ion-button aria-label="Delete photo" color="danger" [disabled]="working()" (click)="removePhoto(photo)">
+          <ion-button
+            aria-label="Delete photo"
+            color="danger"
+            [disabled]="working()"
+            (click)="setDeleteConfirmation(true)"
+          >
             <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
+        }
       </ion-toolbar>
     </ion-footer>
     }

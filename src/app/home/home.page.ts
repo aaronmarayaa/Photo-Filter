@@ -17,7 +17,8 @@ import { cameraOutline, cameraReverseOutline, imagesOutline } from 'ionicons/ico
 
 import { addPhoto } from '../services/photos-api';
 
-import { DogFilter } from './dog-filter';
+import type { FilterName } from './face-filter';
+import { FaceFilter } from './face-filter';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +27,7 @@ import { DogFilter } from './dog-filter';
   imports: [RouterLink, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonMenuButton, IonTitle, IonToolbar],
 })
 export class HomePage implements OnDestroy {
+  selectedFilter = signal<FilterName>('dog');
   cameraState = signal<'closed' | 'opening' | 'open'>('closed');
   cameraError = signal('');
   photoSaveState = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -33,8 +35,9 @@ export class HomePage implements OnDestroy {
   private videoRef = viewChild.required<ElementRef<HTMLVideoElement>>('video');
   private earsRef = viewChild.required<ElementRef<HTMLImageElement>>('dogEars');
   private noseRef = viewChild.required<ElementRef<HTMLImageElement>>('dogNose');
+  private frogRef = viewChild.required<ElementRef<HTMLImageElement>>('frog');
   private cameraStream?: MediaStream;
-  private dogFilter?: DogFilter;
+  private faceFilter?: FaceFilter;
   private cameraSession = 0;
 
   constructor() {
@@ -62,10 +65,12 @@ export class HomePage implements OnDestroy {
     const video = this.videoRef().nativeElement;
     const ears = this.earsRef().nativeElement;
     const nose = this.noseRef().nativeElement;
+    const frog = this.frogRef().nativeElement;
     this.cameraState.set('opening');
     this.cameraError.set('');
     ears.hidden = true;
     nose.hidden = true;
+    frog.hidden = true;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -81,6 +86,7 @@ export class HomePage implements OnDestroy {
       await video.play();
       await ears.decode();
       await nose.decode();
+      await frog.decode();
       const vision = await FilesetResolver.forVisionTasks('assets/mediapipe');
       if (session !== this.cameraSession) {
         return;
@@ -96,8 +102,8 @@ export class HomePage implements OnDestroy {
         return;
       }
 
-      this.dogFilter = new DogFilter(video, ears, nose, tracker);
-      this.dogFilter.start();
+      this.faceFilter = new FaceFilter(video, ears, nose, frog, tracker);
+      this.faceFilter.start();
       this.cameraState.set('open');
     } catch (error) {
       if (session !== this.cameraSession) {
@@ -107,19 +113,19 @@ export class HomePage implements OnDestroy {
       if (error instanceof DOMException && error.name === 'NotAllowedError') {
         this.cameraError.set('Allow camera access in your browser to take a photo.');
       } else {
-        this.cameraError.set('Could not start the camera or load the dog filter.');
+        this.cameraError.set('Could not start the camera or load the filters.');
       }
     }
   }
 
   async capturePhoto(): Promise<void> {
-    if (!this.dogFilter || this.photoSaveState() === 'saving') {
+    if (!this.faceFilter || this.photoSaveState() === 'saving') {
       return;
     }
 
     this.photoSaveState.set('saving');
     try {
-      const photo = this.dogFilter.capture();
+      const photo = this.faceFilter.capture(this.selectedFilter());
       await addPhoto(photo);
       this.photoSaveState.set('saved');
     } catch {
@@ -140,9 +146,9 @@ export class HomePage implements OnDestroy {
       this.cameraStream = undefined;
       this.videoRef().nativeElement.srcObject = null;
     }
-    if (this.dogFilter) {
-      this.dogFilter.stop();
-      this.dogFilter = undefined;
+    if (this.faceFilter) {
+      this.faceFilter.stop();
+      this.faceFilter = undefined;
     }
     this.cameraState.set('closed');
   }

@@ -1,7 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { IonButton, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 
 import { submitCredentials } from '../../services/auth-api';
 
@@ -9,15 +11,28 @@ import { submitCredentials } from '../../services/auth-api';
   selector: 'app-register',
   templateUrl: 'register.page.html',
   styleUrl: 'register.page.scss',
-  imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar],
+  imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar],
 })
 export class RegisterPage {
   username = '';
   password = '';
+  confirmPassword = '';
   warning = signal('');
   submitting = signal(false);
 
   private router = inject(Router);
+
+  constructor() {
+    addIcons({ eyeOutline, eyeOffOutline });
+  }
+
+  togglePassword(password: IonInput): void {
+    if (password.type === 'password') {
+      password.type = 'text';
+    } else {
+      password.type = 'password';
+    }
+  }
 
   async submit(): Promise<void> {
     if (this.submitting()) {
@@ -40,6 +55,11 @@ export class RegisterPage {
       return;
     }
 
+    if (this.password !== this.confirmPassword) {
+      this.warning.set('Passwords do not match.');
+      return;
+    }
+
     this.warning.set('');
     this.submitting.set(true);
 
@@ -51,6 +71,7 @@ export class RegisterPage {
       }
 
       this.password = '';
+      this.confirmPassword = '';
       await this.router.navigate(['/login'], { queryParams: { registered: '1' }, replaceUrl: true });
     } catch {
       this.warning.set('Couldn\'t reach the registration server. Try again.');

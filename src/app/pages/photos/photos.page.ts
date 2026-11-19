@@ -13,7 +13,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { closeOutline, downloadOutline, trashOutline } from 'ionicons/icons';
+import { checkmarkOutline, closeOutline, downloadOutline, trashOutline } from 'ionicons/icons';
 
 import type { Photo } from '../../services/photos-api';
 import { deletePhoto, getPhotoImage, listPhotos, photoImageUrl } from '../../services/photos-api';
@@ -39,6 +39,7 @@ import { deletePhoto, getPhotoImage, listPhotos, photoImageUrl } from '../../ser
 export class PhotosPage {
   photos = signal<Photo[]>([]);
   selectedPhoto = signal<Photo | null>(null);
+  confirmingDelete = signal(false);
   photoImageUrl = photoImageUrl;
   loading = signal(false);
   loadError = signal(false);
@@ -46,12 +47,17 @@ export class PhotosPage {
   working = signal(false);
 
   constructor() {
-    addIcons({ closeOutline, downloadOutline, trashOutline });
+    addIcons({ checkmarkOutline, closeOutline, downloadOutline, trashOutline });
   }
 
   openPhoto(photo: Photo): void {
-    this.actionError.set('');
+    this.setDeleteConfirmation(false);
     this.selectedPhoto.set(photo);
+  }
+
+  setDeleteConfirmation(show: boolean): void {
+    this.confirmingDelete.set(show);
+    this.actionError.set('');
   }
 
   ionViewWillEnter(): void {
@@ -99,7 +105,7 @@ export class PhotosPage {
   }
 
   async removePhoto(photo: Photo): Promise<void> {
-    if (!window.confirm(`Delete ${this.photoName(photo.id)}?`)) {
+    if (this.working()) {
       return;
     }
 

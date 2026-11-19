@@ -1,3 +1,7 @@
+#container {
+  --background: #f8f2e8;
+}
+
 .gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 6rem), 1fr));

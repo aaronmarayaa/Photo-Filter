@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" id="container">
   <form class="register-form" #registerForm="ngForm" (ngSubmit)="submit()">
     <ion-input
       name="username"
@@ -19,6 +19,7 @@
     ></ion-input>
 
     <ion-input
+      #passwordInput
       name="password"
       label="Password"
       labelPlacement="stacked"
@@ -29,7 +30,40 @@
       [(ngModel)]="password"
       [readonly]="submitting()"
       required
-    ></ion-input>
+    >
+      <ion-button
+        slot="end"
+        type="button"
+        fill="clear"
+        [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
+        (click)="togglePassword(passwordInput)"
+      >
+        <ion-icon slot="icon-only" [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+      </ion-button>
+    </ion-input>
+
+    <ion-input
+      #confirmInput
+      name="confirmPassword"
+      label="Confirm Password"
+      labelPlacement="stacked"
+      fill="outline"
+      type="password"
+      autocomplete="new-password"
+      [(ngModel)]="confirmPassword"
+      [readonly]="submitting()"
+      required
+    >
+      <ion-button
+        slot="end"
+        type="button"
+        fill="clear"
+        [attr.aria-label]="confirmInput.type === 'password' ? 'Show confirm password' : 'Hide confirm password'"
+        (click)="togglePassword(confirmInput)"
+      >
+        <ion-icon slot="icon-only" [name]="confirmInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+      </ion-button>
+    </ion-input>
 
     @if (warning()) {
     <p class="warning" role="alert">{{ warning() }}</p>

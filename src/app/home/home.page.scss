@@ -69,13 +69,14 @@ ion-content::part(scroll) {
   height: min(70dvh, 50rem);
   margin-bottom: 1rem;
   overflow: hidden;
-  transform: scaleX(-1);
   border-radius: 8px;
   background: #222;
 }
 
-.camera-preview.camera-off > * {
-  display: none;
+.camera-feed {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(-1);
 }
 
 .camera-preview video {
@@ -85,7 +86,7 @@ ion-content::part(scroll) {
   object-fit: cover;
 }
 
-.camera-preview img {
+.camera-feed img {
   position: absolute;
   pointer-events: none;
 }
@@ -98,4 +99,45 @@ ion-content::part(scroll) {
 .dog-nose {
   translate: -50% -30%;
   transform-origin: 50% 30%;
+}
+
+.frog {
+  translate: -50% -78%;
+  transform-origin: 50% 78%;
+}
+
+.filter-choices {
+  position: absolute;
+  inset: auto 0 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.filter-choices button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 4px;
+  border: 2px solid #74695e;
+  border-radius: 50%;
+  background: #f8f2e8;
+  cursor: pointer;
+}
+
+.filter-choices button[aria-pressed='true'] {
+  border-color: #38332e;
+  box-shadow: 0 0 0 2px white;
+}
+
+.filter-choices img {
+  width: 100%;
+}
+
+.filter-choices .nose-icon {
+  position: absolute;
+  width: 16px;
+  bottom: 6px;
 }

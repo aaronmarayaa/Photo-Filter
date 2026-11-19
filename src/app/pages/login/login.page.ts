@@ -2,7 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { IonButton, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { map } from 'rxjs';
 
 import { markSignedIn, submitCredentials } from '../../services/auth-api';
@@ -11,7 +13,7 @@ import { markSignedIn, submitCredentials } from '../../services/auth-api';
   selector: 'app-login',
   templateUrl: 'login.page.html',
   styleUrl: 'login.page.scss',
-  imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar],
+  imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar],
 })
 export class LoginPage {
   username = '';
@@ -23,6 +25,18 @@ export class LoginPage {
   );
 
   private router = inject(Router);
+
+  constructor() {
+    addIcons({ eyeOutline, eyeOffOutline });
+  }
+
+  togglePassword(password: IonInput): void {
+    if (password.type === 'password') {
+      password.type = 'text';
+    } else {
+      password.type = 'password';
+    }
+  }
 
   ionViewWillEnter(): void {
     this.warning.set('');

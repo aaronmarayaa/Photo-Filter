@@ -1,6 +1,11 @@
+#container {
+  --background: #f8f2e8;
+}
+
 .register-form {
   display: flex;
   flex-direction: column;
+  color: black;
   gap: 1rem;
   max-width: 24rem;
   margin: clamp(1rem, 8vh, 4rem) auto 0;

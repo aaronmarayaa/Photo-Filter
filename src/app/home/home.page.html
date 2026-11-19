@@ -9,14 +9,44 @@
 
 <ion-content>
   <div id="container">
-    <div class="camera-preview" [class.camera-off]="cameraState() !== 'open'">
-      <video #video muted playsinline aria-label="Live camera preview"></video>
-      <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
-      <img #dogNose class="dog-nose" src="assets/dog-nose.svg" alt="" hidden />
+    <div class="camera-preview">
+      <div class="camera-feed" [hidden]="cameraState() !== 'open'">
+        <video #video muted playsinline aria-label="Live camera preview"></video>
+        <div [hidden]="selectedFilter() !== 'dog'">
+          <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
+          <img #dogNose class="dog-nose" src="assets/dog-nose.svg" alt="" hidden />
+        </div>
+        <div [hidden]="selectedFilter() !== 'frog'">
+          <img #frog class="frog" src="assets/frog.png" alt="" hidden />
+        </div>
+      </div>
+      <div class="filter-choices" role="group" aria-label="Camera filters">
+        <button
+          type="button"
+          aria-label="Dog filter"
+          [attr.aria-pressed]="selectedFilter() === 'dog'"
+          (click)="selectedFilter.set('dog')"
+        >
+          <img src="assets/dog-ears.svg" alt="" />
+          <img class="nose-icon" src="assets/dog-nose.svg" alt="" />
+        </button>
+        <button
+          type="button"
+          aria-label="Frog filter"
+          [attr.aria-pressed]="selectedFilter() === 'frog'"
+          (click)="selectedFilter.set('frog')"
+        >
+          <img src="assets/frog.png" alt="" />
+        </button>
+      </div>
     </div>
     <div class="buttons">
       <a class="photos-link" routerLink="/photos" aria-label="Open photo list">
-        <ion-icon name="images-outline" aria-hidden="true" [class.photo-saved]="photoSaveState() === 'saved'"></ion-icon>
+        <ion-icon
+          name="images-outline"
+          aria-hidden="true"
+          [class.photo-saved]="photoSaveState() === 'saved'"
+        ></ion-icon>
       </a>
       <ion-button
         class="capture-button"
@@ -33,22 +63,13 @@
     </div>
 
     <div role="status">
-      @switch (photoSaveState()) {
-        @case ('saving') {
-          Adding photo…
-        }
-        @case ('saved') {
-          Photo added to the list.
-        }
-        @case ('error') {
-          Couldn't add the photo to the list. Try again.
-        }
-      }
+      @switch (photoSaveState()) { @case ('saving') { Adding photo… } @case ('saved') { Photo added to the list. } @case
+      ('error') { Couldn't add the photo to the list. Try again. } }
     </div>
 
     @if (cameraError()) {
-      <p role="alert">{{ cameraError() }}</p>
-      <ion-button fill="clear" (click)="openCamera()">Retry camera</ion-button>
+    <p role="alert">{{ cameraError() }}</p>
+    <ion-button fill="clear" (click)="openCamera()">Retry camera</ion-button>
     }
   </div>
 </ion-content>

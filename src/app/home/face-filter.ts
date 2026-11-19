@@ -1,12 +1,15 @@
 import type { FaceLandmarker, NormalizedLandmark } from '@mediapipe/tasks-vision';
 
-export class DogFilter {
+export type FilterName = 'dog' | 'frog';
+
+export class FaceFilter {
   private animationFrame = 0;
 
   constructor(
     private video: HTMLVideoElement,
     private ears: HTMLImageElement,
     private nose: HTMLImageElement,
+    private frog: HTMLImageElement,
     private tracker: FaceLandmarker,
   ) {}
 
@@ -20,6 +23,7 @@ export class DogFilter {
 
         this.ears.hidden = !face;
         this.nose.hidden = !face;
+        this.frog.hidden = !face;
         if (face) {
           this.positionImages(face);
         }
@@ -35,7 +39,7 @@ export class DogFilter {
     this.tracker.close();
   }
 
-  capture(): HTMLCanvasElement {
+  capture(filter: FilterName): HTMLCanvasElement {
     const video = this.video;
     if (!video.videoWidth || !video.videoHeight || !video.clientWidth || !video.clientHeight) {
       throw new Error('The camera frame is unavailable.');
@@ -53,8 +57,12 @@ export class DogFilter {
     context.translate(canvas.width, 0);
     context.scale(-canvas.width / video.clientWidth, canvas.height / video.clientHeight);
     context.drawImage(video, frame.left, frame.top, frame.width, frame.height);
-    this.drawImage(context, this.ears);
-    this.drawImage(context, this.nose);
+    if (filter === 'frog') {
+      this.drawImage(context, this.frog);
+    } else {
+      this.drawImage(context, this.ears);
+      this.drawImage(context, this.nose);
+    }
     return canvas;
   }
 
@@ -88,6 +96,7 @@ export class DogFilter {
 
     placeImage(this.ears, forehead, faceSize * 2.2);
     placeImage(this.nose, noseTip, faceSize * 0.9);
+    placeImage(this.frog, forehead, faceSize * 1.6);
   }
 
   private drawImage(context: CanvasRenderingContext2D, image: HTMLImageElement): void {
