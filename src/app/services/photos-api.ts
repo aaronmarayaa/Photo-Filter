@@ -1,7 +1,5 @@
 import { apiUrl } from './api-url';
 
-const photosUrl = apiUrl('photos');
-
 export interface Photo {
   id: number;
   createdAt: string;
@@ -16,7 +14,7 @@ export function addPhoto(canvas: HTMLCanvasElement): Promise<void> {
       throw new Error('Could not encode the photo.');
     }
 
-    const response = await fetch(photosUrl, {
+    const response = await fetch(apiUrl('photos'), {
       method: 'POST',
       body: photo,
       signal: AbortSignal.timeout(15000),
@@ -33,7 +31,7 @@ export function addPhoto(canvas: HTMLCanvasElement): Promise<void> {
 
 export async function listPhotos(): Promise<Photo[]> {
   await pendingUpload;
-  const response = await fetch(photosUrl, { signal: AbortSignal.timeout(15000) });
+  const response = await fetch(apiUrl('photos'), { signal: AbortSignal.timeout(15000) });
   if (!response.ok) {
     throw new Error('Could not load the photos.');
   }
@@ -43,7 +41,7 @@ export async function listPhotos(): Promise<Photo[]> {
 }
 
 export function photoImageUrl(id: number): string {
-  return `${photosUrl}/${id}/image`;
+  return apiUrl(`photos/${id}/image`);
 }
 
 export async function getPhotoImage(id: number): Promise<Blob> {
@@ -56,7 +54,7 @@ export async function getPhotoImage(id: number): Promise<Blob> {
 }
 
 export async function deletePhoto(id: number): Promise<void> {
-  const response = await fetch(`${photosUrl}/${id}`, {
+  const response = await fetch(apiUrl(`photos/${id}`), {
     method: 'DELETE',
     signal: AbortSignal.timeout(15000),
   });

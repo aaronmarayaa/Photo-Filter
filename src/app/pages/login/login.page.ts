@@ -7,6 +7,7 @@ import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { map } from 'rxjs';
 
+import { chooseServerOnPhone } from '../../services/api-url';
 import { markSignedIn, submitCredentials } from '../../services/auth-api';
 
 @Component({
@@ -16,6 +17,7 @@ import { markSignedIn, submitCredentials } from '../../services/auth-api';
   imports: [FormsModule, RouterLink, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar],
 })
 export class LoginPage {
+  chooseServerOnPhone = chooseServerOnPhone;
   username = '';
   password = '';
   warning = signal('');

@@ -56,5 +56,8 @@
     <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
       Create Account
     </ion-button>
+    @if (chooseServerOnPhone) {
+    <ion-button routerLink="/server" fill="clear" [disabled]="submitting()">Change backend address</ion-button>
+    }
   </form>
 </ion-content>

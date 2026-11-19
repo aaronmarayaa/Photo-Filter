@@ -76,6 +76,9 @@ ion-content::part(scroll) {
 .camera-feed {
   position: absolute;
   inset: 0;
+}
+
+.camera-feed.mirrored {
   transform: scaleX(-1);
 }
 

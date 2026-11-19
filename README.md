@@ -21,8 +21,8 @@ Android 7 or newer is required. For a private repository, sign in to GitHub in y
 The workflow is [Android APK and QR code](.github/workflows/android-download.yml). It runs on pushes to `master` or `main`, and can also be run from the repository's **Actions** tab.
 
 1. Make the PHP backend available at an HTTPS address that your phone can reach. Include the full API path, for example `https://your-backend.example/photo-filter-backend/api`.
-2. In GitHub, open **Settings → Secrets and variables → Actions → Variables**. Create a repository variable named `PHOTO_FILTER_API_URL` containing that address.
-3. Commit and push this project to GitHub. Open **Actions → Android APK and QR code** and wait for the run to finish. To start another build, choose **Run workflow**. The optional `api_url` input overrides the saved variable for that build.
+2. To preconfigure the APK, set the GitHub Actions variable `PHOTO_FILTER_API_URL` to that address. The workflow also accepts a secret of the same name. If both are empty, the APK asks for the backend address before the first login and remembers it on the phone. Use **Change backend address** on the login screen to edit it.
+3. Commit and push this project to GitHub. Open **Actions → Android APK and QR code** and wait for the run to finish. To start another build, choose **Run workflow**. The optional `api_url` input overrides the saved variable or secret for that build.
 4. Open the run's **Summary** or the new **Release** to see its QR code. Each release contains the APK, QR image, and APK SHA-256 checksum. The README QR code above always points to the latest successful release.
 
 The workflow installs Node.js 24, Java 21, and Android SDK 36, checks lint and unit tests, builds the app, and publishes the download. No personal GitHub token or signing secrets are required. The workflow requests `contents: write` to publish releases; repository or organization policies must allow that permission.
@@ -43,7 +43,6 @@ The development server proxies `/photo-filter-backend/api` to local XAMPP.
 To prepare Android locally, install [Capacitor's Android prerequisites](https://capacitorjs.com/docs/getting-started/environment-setup), then run:
 
 ```powershell
-$env:PHOTO_FILTER_API_URL = 'https://your-backend.example/photo-filter-backend/api'
 npm run build:android
 npm run android:open
 ```

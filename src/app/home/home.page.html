@@ -10,7 +10,7 @@
 <ion-content>
   <div id="container">
     <div class="camera-preview">
-      <div class="camera-feed" [hidden]="cameraState() !== 'open'">
+      <div class="camera-feed" [class.mirrored]="cameraFacing() === 'user'" [hidden]="cameraState() !== 'open'">
         <video #video muted playsinline aria-label="Live camera preview"></video>
         <div [hidden]="selectedFilter() !== 'dog'">
           <img #dogEars class="dog-ears" src="assets/dog-ears.svg" alt="" hidden />
@@ -57,7 +57,13 @@
       >
         <ion-icon slot="icon-only" name="camera-outline" aria-hidden="true"></ion-icon>
       </ion-button>
-      <ion-button class="reverse-button" fill="clear" disabled aria-label="Reverse camera">
+      <ion-button
+        class="reverse-button"
+        fill="clear"
+        aria-label="Reverse camera"
+        [disabled]="cameraState() !== 'open'"
+        (click)="reverseCamera()"
+      >
         <ion-icon slot="icon-only" name="camera-reverse-outline" aria-hidden="true"></ion-icon>
       </ion-button>
     </div>
@@ -69,7 +75,8 @@
 
     @if (cameraError()) {
     <p role="alert">{{ cameraError() }}</p>
+    @if (cameraState() === 'closed') {
     <ion-button fill="clear" (click)="openCamera()">Retry camera</ion-button>
-    }
+    } }
   </div>
 </ion-content>

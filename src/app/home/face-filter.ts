@@ -39,7 +39,7 @@ export class FaceFilter {
     this.tracker.close();
   }
 
-  capture(filter: FilterName): HTMLCanvasElement {
+  capture(filter: FilterName, mirror: boolean): HTMLCanvasElement {
     const video = this.video;
     if (!video.videoWidth || !video.videoHeight || !video.clientWidth || !video.clientHeight) {
       throw new Error('The camera frame is unavailable.');
@@ -54,8 +54,11 @@ export class FaceFilter {
       throw new Error('The camera frame is unavailable.');
     }
 
-    context.translate(canvas.width, 0);
-    context.scale(-canvas.width / video.clientWidth, canvas.height / video.clientHeight);
+    if (mirror) {
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+    }
+    context.scale(canvas.width / video.clientWidth, canvas.height / video.clientHeight);
     context.drawImage(video, frame.left, frame.top, frame.width, frame.height);
     if (filter === 'frog') {
       this.drawImage(context, this.frog);
