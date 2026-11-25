@@ -27,11 +27,7 @@ export class RegisterPage {
   }
 
   togglePassword(password: IonInput): void {
-    if (password.type === 'password') {
-      password.type = 'text';
-    } else {
-      password.type = 'password';
-    }
+    password.type = password.type === 'password' ? 'text' : 'password';
   }
 
   async submit(): Promise<void> {
@@ -42,16 +38,6 @@ export class RegisterPage {
     const username = this.username.trim();
     if (!username) {
       this.warning.set('Enter a username.');
-      return;
-    }
-
-    const passwordBytes = new TextEncoder().encode(this.password).length;
-    if (passwordBytes < 8 || passwordBytes > 48) {
-      this.warning.set(
-        passwordBytes < 8
-          ? 'Use a longer password.'
-          : 'Use a shorter password. Some characters count as more than one.',
-      );
       return;
     }
 

@@ -1,11 +1,8 @@
-import { inject } from '@angular/core';
-import { Router, type Routes, type UrlTree } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 import { authGuard } from './guards/auth.guard';
-import { chooseServerOnPhone, getBackendUrl } from './services/api-url';
-import { signedIn } from './services/auth-api';
 
-const appPages: Routes = [
+export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
@@ -34,31 +31,9 @@ const appPages: Routes = [
     redirectTo: 'photos',
     pathMatch: 'full',
   },
-];
-
-function allowServerSetup(): boolean | UrlTree {
-  if (chooseServerOnPhone && !signedIn()) {
-    return true;
-  }
-  return inject(Router).parseUrl('/home');
-}
-
-function requireBackendUrl(): boolean | UrlTree {
-  if (getBackendUrl()) {
-    return true;
-  }
-  return inject(Router).parseUrl('/server');
-}
-
-export const routes: Routes = [
   {
     path: 'server',
-    canActivate: [allowServerSetup],
-    loadComponent: () => import('./pages/server/server.page').then((m) => m.ServerPage),
-  },
-  {
-    path: '',
-    canActivateChild: [requireBackendUrl],
-    children: appPages,
+    redirectTo: 'login',
+    pathMatch: 'full',
   },
 ];

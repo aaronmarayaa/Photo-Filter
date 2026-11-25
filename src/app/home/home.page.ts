@@ -69,77 +69,51 @@ export class HomePage implements OnDestroy {
   }
 
   async openCamera(switchTo?: CameraFacing): Promise<void> {
-    if (this.cameraState() === 'opening' || (this.cameraState() === 'open' && !switchTo)) {
+    const state = this.cameraState();
+    if (state === 'opening' || (state === 'open' && !switchTo)) {
       return;
     }
 
     const session = this.cameraSession;
     const video = this.videoRef().nativeElement;
-    const ears = this.earsRef().nativeElement;
-    const nose = this.noseRef().nativeElement;
-    const frog = this.frogRef().nativeElement;
-    const previousDevice = this.cameraStream?.getVideoTracks()[0]?.getSettings().deviceId;
-    let facing = switchTo ?? this.cameraFacing();
+    const stickers = [
+      this.earsRef().nativeElement,
+      this.noseRef().nativeElement,
+      this.frogRef().nativeElement,
+    ] as const;
+    const previousFacing = this.cameraFacing();
+    const previousDeviceId = this.cameraStream?.getVideoTracks()[0]?.getSettings().deviceId;
+    const preferredFacing = switchTo ?? previousFacing;
+
     this.cameraState.set('opening');
     this.cameraError.set('');
     this.releaseCameraStream();
-    ears.hidden = true;
-    nose.hidden = true;
-    frog.hidden = true;
+    for (const sticker of stickers) {
+      sticker.hidden = true;
+    }
 
     try {
-      let stream: MediaStream;
-      try {
-        stream = await this.requestStream(switchTo ? { exact: switchTo } : facing);
-      } catch (error) {
-        if (
-          !switchTo ||
-          session !== this.cameraSession ||
-          (error instanceof DOMException && error.name === 'NotAllowedError')
-        ) {
-          throw error;
-        }
-        facing = this.cameraFacing();
-        stream = await this.requestStream(facing);
-      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: preferredFacing }, width: { ideal: 640 }, height: { ideal: 480 } },
+      });
       if (session !== this.cameraSession) {
         this.stopStream(stream);
         return;
       }
 
       this.cameraStream = stream;
-      const settings = stream.getVideoTracks()[0].getSettings();
-      if (settings.facingMode === 'user' || settings.facingMode === 'environment') {
-        facing = settings.facingMode;
-      } else if (previousDevice && previousDevice === settings.deviceId) {
-        facing = this.cameraFacing();
-      }
+      const { facingMode, deviceId } = stream.getVideoTracks()[0].getSettings();
+      const fallbackFacing = deviceId && deviceId === previousDeviceId ? previousFacing : preferredFacing;
+      const facing = facingMode === 'user' || facingMode === 'environment' ? facingMode : fallbackFacing;
       this.cameraFacing.set(facing);
+
       video.srcObject = stream;
       await video.play();
+      await this.startFaceFilter(video, stickers, session);
       if (session !== this.cameraSession) {
         return;
       }
-      if (!this.faceFilter) {
-        await ears.decode();
-        await nose.decode();
-        await frog.decode();
-        const vision = await FilesetResolver.forVisionTasks('assets/mediapipe');
-        if (session !== this.cameraSession) {
-          return;
-        }
-        const tracker = await FaceLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: 'assets/face_landmarker.task' },
-          runningMode: 'VIDEO',
-          numFaces: 1,
-        });
-        if (session !== this.cameraSession) {
-          tracker.close();
-          return;
-        }
-        this.faceFilter = new FaceFilter(video, ears, nose, frog, tracker);
-        this.faceFilter.start();
-      }
+
       this.cameraState.set('open');
       if (switchTo && facing !== switchTo) {
         this.cameraError.set('The other camera is unavailable on this device.');
@@ -149,11 +123,11 @@ export class HomePage implements OnDestroy {
         return;
       }
       this.closeCamera();
-      if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        this.cameraError.set('Allow camera access in your browser to take a photo.');
-      } else {
-        this.cameraError.set('Could not start the camera or load the filters.');
-      }
+      this.cameraError.set(
+        error instanceof DOMException && error.name === 'NotAllowedError'
+          ? 'Allow camera access in your browser to take a photo.'
+          : 'Could not start the camera or load the filters.',
+      );
     }
   }
 
@@ -176,10 +150,35 @@ export class HomePage implements OnDestroy {
     }
   }
 
-  private requestStream(facingMode: ConstrainDOMString): Promise<MediaStream> {
-    return navigator.mediaDevices.getUserMedia({
-      video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+  private async startFaceFilter(
+    video: HTMLVideoElement,
+    stickers: readonly [ears: HTMLImageElement, nose: HTMLImageElement, frog: HTMLImageElement],
+    session: number,
+  ): Promise<void> {
+    if (this.faceFilter || session !== this.cameraSession) {
+      return;
+    }
+
+    const [vision] = await Promise.all([
+      FilesetResolver.forVisionTasks('assets/mediapipe'),
+      ...stickers.map((sticker) => sticker.decode()),
+    ]);
+    if (session !== this.cameraSession) {
+      return;
+    }
+
+    const tracker = await FaceLandmarker.createFromOptions(vision, {
+      baseOptions: { modelAssetPath: 'assets/face_landmarker.task' },
+      runningMode: 'VIDEO',
+      numFaces: 1,
     });
+    if (session !== this.cameraSession) {
+      tracker.close();
+      return;
+    }
+
+    this.faceFilter = new FaceFilter(video, ...stickers, tracker);
+    this.faceFilter.start();
   }
 
   private stopStream(stream: MediaStream): void {
@@ -199,10 +198,8 @@ export class HomePage implements OnDestroy {
   private closeCamera(): void {
     this.cameraSession++;
     this.releaseCameraStream();
-    if (this.faceFilter) {
-      this.faceFilter.stop();
-      this.faceFilter = undefined;
-    }
+    this.faceFilter?.stop();
+    this.faceFilter = undefined;
     this.cameraState.set('closed');
   }
 }

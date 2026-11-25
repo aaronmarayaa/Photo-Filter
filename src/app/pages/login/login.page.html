@@ -22,7 +22,6 @@
     ></ion-input>
 
     <ion-input
-      #passwordInput
       name="password"
       label="Password"
       labelPlacement="stacked"
@@ -32,18 +31,7 @@
       [(ngModel)]="password"
       required
     >
-      <ion-button
-        slot="end"
-        type="button"
-        fill="clear"
-        [attr.aria-label]="passwordInput.type === 'password' ? 'Show password' : 'Hide password'"
-        (click)="togglePassword(passwordInput)"
-      >
-        <ion-icon
-          slot="icon-only"
-          [name]="passwordInput.type === 'password' ? 'eye-outline' : 'eye-off-outline'"
-        ></ion-icon>
-      </ion-button>
+      <ion-input-password-toggle slot="end"></ion-input-password-toggle>
     </ion-input>
 
     @if (warning()) {
@@ -56,8 +44,5 @@
     <ion-button routerLink="/register" expand="block" fill="outline" [disabled]="submitting()">
       Create Account
     </ion-button>
-    @if (chooseServerOnPhone) {
-    <ion-button routerLink="/server" fill="clear" [disabled]="submitting()">Change backend address</ion-button>
-    }
   </form>
 </ion-content>

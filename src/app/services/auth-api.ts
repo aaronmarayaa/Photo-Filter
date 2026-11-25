@@ -58,7 +58,7 @@ export async function submitCredentials(
     return '';
   }
 
-  return result.message ?? 'Couldn’t complete the request. Try again.';
+  return result.message ?? 'Couldn\'t complete the request. Try again.';
 }
 
 export async function logout(): Promise<void> {

@@ -19,17 +19,20 @@ describe('RegisterPage', () => {
     vi.restoreAllMocks();
   });
 
-  it.each([
-    ['1234567', /longer password/],
-    ['é'.repeat(25), /shorter password/],
-  ])('rejects passwords outside the PHP byte limit', async (password, warning) => {
+  it.each(['1234567', 'é'.repeat(25)])('shows the server warning for a rejected password', async (password) => {
+    const message = 'Password must be 8-48 characters.';
+    fetchMock.mockResolvedValue(Response.json({ message }, { status: 422 }));
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate');
     page.username = 'demouser';
     page.password = password;
+    page.confirmPassword = password;
 
     await page.submit();
 
-    expect(page.warning()).toMatch(warning);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(page.warning()).toBe(message);
+    expect(page.submitting()).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('submits once while a request is pending and clears the password on success', async () => {

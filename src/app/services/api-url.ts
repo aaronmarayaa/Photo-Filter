@@ -1,16 +1,9 @@
 import { environment } from '../../environments/environment';
 
-export const chooseServerOnPhone = !environment.apiBaseUrl;
-export const serverStorageKey = 'photo-filter-backend-url';
-
-export function getBackendUrl(): string {
-  return environment.apiBaseUrl || localStorage.getItem(serverStorageKey) || '';
-}
-
 export function apiUrl(endpoint: string): string {
-  const base = getBackendUrl();
-  if (!base) {
-    throw new Error('Set the backend address before using the app.');
+  const { apiBaseUrl } = environment;
+  if (!apiBaseUrl) {
+    throw new Error('Set PHOTO_FILTER_API_URL before building for Android.');
   }
-  return `${base}/${endpoint}`;
+  return `${apiBaseUrl}/${endpoint}`;
 }

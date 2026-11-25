@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       api_url:
-        description: Optional HTTPS backend API URL. If none is configured, enter it on the phone.
+        description: HTTPS backend API URL for this build. Defaults to the configured PHOTO_FILTER_API_URL.
         required: false
         type: string
 

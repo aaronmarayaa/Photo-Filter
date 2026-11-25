@@ -15,7 +15,6 @@ export class PhotoSrcDirective {
         return;
       }
 
-      // Native HTTP shares PHP session cookies; cross-site image tags do not.
       let disposed = false;
       let objectUrl: string | undefined;
       image.removeAttribute('src');

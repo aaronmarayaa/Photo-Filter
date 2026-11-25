@@ -14,7 +14,7 @@ async function photoRequestError(response: Response, fallback: string): Promise<
       return new Error(result.message);
     }
   } catch {
-    // A tunnel error can return HTML instead of the API's JSON response.
+    return new Error(`${fallback} (HTTP ${response.status}).`);
   }
   return new Error(`${fallback} (HTTP ${response.status}).`);
 }
@@ -38,8 +38,7 @@ export function addPhoto(canvas: HTMLCanvasElement): Promise<void> {
     }
   });
 
-  // The Photos page can open while a capture is still uploading.
-  pendingUpload = upload.catch(() => {});
+  pendingUpload = upload.catch(() => {}); // the photos page can open while a capture is stilll uploading.
   return upload;
 }
 
