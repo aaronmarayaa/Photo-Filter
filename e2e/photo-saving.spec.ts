@@ -8,7 +8,6 @@ const png = Buffer.from(
 );
 
 test.beforeEach(async ({ page, context }) => {
-  await page.addInitScript(() => sessionStorage.setItem('photo-filter-signed-in', 'true'));
   await context.route(`${api}/session`, (route) => route.fulfill({ status: 204 }));
   await context.route(`${api}/photos`, (route) =>
     route.fulfill({ json: { photos: [{ id: 1, createdAt: '2026-11-19T00:00:00Z' }] } }),

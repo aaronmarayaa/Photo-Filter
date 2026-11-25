@@ -12,12 +12,16 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 @CapacitorPlugin(name = "PhotoSaver")
 public class PhotoSaverPlugin extends Plugin {
     private static final int MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+    private static final String STAGED_PHOTO = "stagedPhoto";
     private volatile boolean saving;
 
     @PluginMethod
@@ -37,17 +41,51 @@ public class PhotoSaverPlugin extends Plugin {
             return;
         }
 
+        File photo;
+        try {
+            byte[] image = Base64.decode(data, Base64.DEFAULT);
+            if (image.length == 0 || image.length > MAX_PHOTO_BYTES) {
+                throw new IllegalArgumentException("The downloaded photo has an invalid size.");
+            }
+            photo = stagePhoto(image);
+        } catch (IOException | IllegalArgumentException | SecurityException error) {
+            call.reject("Could not prepare the photo for saving. Try again.", error);
+            return;
+        }
+
+        // Capacitor saves the call data in Android's activity state while the picker is open.
+        call.getData().remove("data");
+        call.getData().put(STAGED_PHOTO, photo.getName());
+
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/png");
         intent.putExtra(Intent.EXTRA_TITLE, name);
         saving = true;
-        try {
-            startActivityForResult(call, intent, "saveResult");
-        } catch (ActivityNotFoundException error) {
-            saving = false;
-            call.reject("Your phone has no file picker for saving photos.", error);
+        bridge.executeOnMainThread(() -> {
+            try {
+                startActivityForResult(call, intent, "saveResult");
+            } catch (ActivityNotFoundException error) {
+                photo.delete();
+                saving = false;
+                call.reject("Your phone has no file picker for saving photos.", error);
+            } catch (IllegalStateException | SecurityException error) {
+                photo.delete();
+                saving = false;
+                call.reject("Could not open the file picker. Try again.", error);
+            }
+        });
+    }
+
+    private File stagePhoto(byte[] image) throws IOException {
+        File photo = File.createTempFile("photo-save-", ".png", getContext().getCacheDir());
+        try (OutputStream output = new FileOutputStream(photo)) {
+            output.write(image);
+        } catch (IOException | SecurityException error) {
+            photo.delete();
+            throw error;
         }
+        return photo;
     }
 
     @ActivityCallback
@@ -56,45 +94,64 @@ public class PhotoSaverPlugin extends Plugin {
             saving = false;
             return;
         }
-        if (result.getResultCode() == Activity.RESULT_CANCELED) {
-            saving = false;
-            JSObject response = new JSObject();
-            response.put("saved", false);
-            call.resolve(response);
-            return;
-        }
-        Uri destination = result.getData() == null ? null : result.getData().getData();
-        if (result.getResultCode() != Activity.RESULT_OK || destination == null) {
-            saving = false;
-            call.reject("No save location was selected. Try again.");
-            return;
-        }
+        saving = true;
+        bridge.execute(() -> finishSave(call, result));
+    }
 
-        bridge.execute(() -> {
-            try {
-                byte[] image = Base64.decode(call.getString("data", ""), Base64.DEFAULT);
-                if (image.length == 0 || image.length > MAX_PHOTO_BYTES) {
-                    throw new IOException("The downloaded photo has an invalid size.");
-                }
-                try (OutputStream output = getContext().getContentResolver().openOutputStream(destination, "w")) {
-                    if (output == null) {
-                        throw new IOException("The selected folder could not be opened.");
-                    }
-                    output.write(image);
-                }
+    private void finishSave(PluginCall call, ActivityResult result) {
+        String stagedName = call.getString(STAGED_PHOTO);
+        File photo = stagedName == null ? null : new File(getContext().getCacheDir(), stagedName);
+        Uri destination = result.getData() == null ? null : result.getData().getData();
+        try {
+            if (result.getResultCode() == Activity.RESULT_CANCELED) {
                 JSObject response = new JSObject();
-                response.put("saved", true);
+                response.put("saved", false);
                 call.resolve(response);
-            } catch (IOException | IllegalArgumentException | SecurityException error) {
-                try {
-                    getContext().getContentResolver().delete(destination, null, null);
-                } catch (RuntimeException ignored) {
-                    // Some document providers cannot remove a failed, partially written file.
-                }
-                call.reject("Could not write the photo to that folder. Choose another location and try again.", error);
-            } finally {
-                saving = false;
+                return;
             }
-        });
+            if (result.getResultCode() != Activity.RESULT_OK || destination == null) {
+                call.reject("No save location was selected. Try again.");
+                return;
+            }
+            long expectedSize = photo == null ? 0 : photo.length();
+            if (expectedSize == 0) {
+                throw new IOException("The staged photo is unavailable.");
+            }
+
+            long bytesWritten = 0;
+            try (
+                FileInputStream image = new FileInputStream(photo);
+                OutputStream output = getContext().getContentResolver().openOutputStream(destination, "w")
+            ) {
+                if (output == null) {
+                    throw new IOException("The selected folder could not be opened.");
+                }
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = image.read(buffer)) != -1) {
+                    output.write(buffer, 0, count);
+                    bytesWritten += count;
+                }
+            }
+            if (bytesWritten != expectedSize) {
+                throw new IOException("The photo was only partially written.");
+            }
+
+            JSObject response = new JSObject();
+            response.put("saved", true);
+            call.resolve(response);
+        } catch (IOException | SecurityException error) {
+            try {
+                getContext().getContentResolver().delete(destination, null, null);
+            } catch (RuntimeException ignored) {
+                // Some document providers cannot remove a failed, partially written file.
+            }
+            call.reject("Could not finish saving the photo. Try again.", error);
+        } finally {
+            if (photo != null) {
+                photo.delete();
+            }
+            saving = false;
+        }
     }
 }

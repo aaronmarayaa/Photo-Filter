@@ -1,10 +1,21 @@
 import { expect, test } from '@playwright/test';
 
-test('restores an active login after refresh in the same tab', async ({ page, context }) => {
+test('restores an active server session in a fresh page', async ({ page, context }) => {
   const api = '**/photo-filter-backend/api';
-  let sessionStatus = 204;
-  await context.route(`${api}/login`, (route) => route.fulfill({ json: { user: { id: 1, username: 'demouser' } } }));
-  await context.route(`${api}/session`, (route) => route.fulfill({ status: sessionStatus }));
+  let sessionExpired = false;
+  await context.route(`${api}/login`, (route) =>
+    route.fulfill({
+      headers: {
+        'Set-Cookie': 'PhotoFilterSession=demo-session; Path=/photo-filter-backend/api; HttpOnly; SameSite=Strict',
+      },
+      json: { user: { id: 1, username: 'demouser' } },
+    }),
+  );
+  await context.route(`${api}/session`, async (route) => {
+    const cookie = await route.request().headerValue('cookie');
+    const sessionValid = !sessionExpired && cookie?.includes('PhotoFilterSession=demo-session');
+    await route.fulfill({ status: sessionValid ? 204 : 401 });
+  });
 
   await page.goto('/home');
   await expect(page).toHaveURL(/\/login$/);
@@ -19,10 +30,11 @@ test('restores an active login after refresh in the same tab', async ({ page, co
 
   const newTab = await context.newPage();
   await newTab.goto('/home');
-  await expect(newTab).toHaveURL(/\/login$/);
+  await expect(newTab.getByRole('button', { name: 'Capture photo' })).toBeVisible();
+  await expect(newTab).toHaveURL(/\/home$/);
   await newTab.close();
 
-  sessionStatus = 401;
+  sessionExpired = true;
   await page.reload();
   await expect(page).toHaveURL(/\/login$/);
 });

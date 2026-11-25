@@ -12,7 +12,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 
-import { markSignedIn, submitCredentials } from '../../services/auth-api';
+import { signedIn, submitCredentials } from '../../services/auth-api';
 
 @Component({
   selector: 'app-login',
@@ -63,7 +63,7 @@ export class LoginPage {
         return;
       }
 
-      markSignedIn();
+      signedIn.set(true);
       this.password = '';
       await this.router.navigateByUrl('/home', { replaceUrl: true });
     } catch {
