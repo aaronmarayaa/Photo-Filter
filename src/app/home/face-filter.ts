@@ -54,7 +54,8 @@ export class FaceFilter {
     context.scale(canvas.width / video.clientWidth, canvas.height / video.clientHeight); // tracks the user's face and draws the filters on the canvas
     context.drawImage(video, frame.left, frame.top, frame.width, frame.height);
     const stickers = filter === 'frog' ? [this.frog] : [this.ears, this.nose];
-    for (const sticker of stickers) { // draws the selected filter one by one
+    for (const sticker of stickers) {
+      // draws the selected filter one by one
       this.drawImage(context, sticker);
     }
     return canvas;
